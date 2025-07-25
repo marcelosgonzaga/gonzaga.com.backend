@@ -13,58 +13,70 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.math.BigDecimal;
 
 @Service
 public class PdfService {
 
     public byte[] gerarEncarte(Projeto projeto) throws IOException, DocumentException {
-        Document document = new Document(PageSize.A4, 30, 30, 30, 30); // Margens de 30px
+        Document document = new Document(PageSize.A4, 20, 20, 30, 30);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try {
             PdfWriter.getInstance(document, baos);
             document.open();
 
-            // Configuração de fontes
+            // Configurações de fonte
             Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
-            Font fontCabecalho = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-            Font fontProduto = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            Font fontPeriodo = FontFactory.getFont(FontFactory.HELVETICA, 14);
+            Font fontProdutoNome = FontFactory.getFont(FontFactory.HELVETICA, 10);
+            Font fontPreco = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
 
-            // Cabeçalho
+            // Título
             Paragraph titulo = new Paragraph("Encarte Promocional", fontTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(10f);
             document.add(titulo);
 
             // Período de validade
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             String periodo = "Válido de " + projeto.getDataInicio().format(formatter) +
                     " a " + projeto.getDataFim().format(formatter);
-            Paragraph validade = new Paragraph(periodo, fontCabecalho);
+            Paragraph validade = new Paragraph(periodo, fontPeriodo);
             validade.setAlignment(Element.ALIGN_CENTER);
+            validade.setSpacingAfter(20f);
             document.add(validade);
 
-            // Adicionar espaço
-            document.add(new Paragraph(" "));
-
-            // Lista de produtos (4 colunas)
+            // Tabela de produtos (4 colunas)
             PdfPTable table = new PdfPTable(4);
             table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
 
             // Formatação de moeda
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
             for (Produto produto : projeto.getProdutos()) {
                 PdfPCell cell = new PdfPCell();
-                Paragraph p = new Paragraph();
+                cell.setPadding(5);
+                cell.setBorder(Rectangle.NO_BORDER);
 
-                p.add(new Chunk(produto.getDescricao() + "\n", fontProduto));
+                // Nome do produto
+                Paragraph pNome = new Paragraph(produto.getDescricao(), fontProdutoNome);
+                pNome.setAlignment(Element.ALIGN_CENTER);
 
-                if (produto.getPrecoDe() != null) {
-                    p.add(new Chunk("De: " + currencyFormat.format(produto.getPrecoDe()) + "   ", fontProduto));
+                // Preços
+                Paragraph pPreco = new Paragraph();
+                if (produto.getPrecoDe() != null && produto.getPrecoDe().compareTo(BigDecimal.ZERO) > 0) {
+                    pPreco.add(new Chunk("De: ", fontProdutoNome));
+                    pPreco.add(new Chunk(currencyFormat.format(produto.getPrecoDe()), fontProdutoNome));
+                    pPreco.add(new Chunk("\n", fontProdutoNome));
                 }
+                pPreco.add(new Chunk("Por: ", fontProdutoNome));
+                pPreco.add(new Chunk(currencyFormat.format(produto.getPrecoPor()), fontPreco));
 
-                p.add(new Chunk("Por: " + currencyFormat.format(produto.getPrecoPor()), fontProduto));
-                cell.addElement(p);
+                cell.addElement(pNome);
+                cell.addElement(pPreco);
                 table.addCell(cell);
             }
 

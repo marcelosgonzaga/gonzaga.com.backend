@@ -2,10 +2,7 @@ package redeinova.jornalfacil.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import redeinova.jornalfacil.dto.NovoProjetoDTO;
 import redeinova.jornalfacil.model.Projeto;
@@ -51,10 +48,22 @@ public class ProjetoController {
 
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
-        byte[] pdf = projetoService.gerarPdfProjeto(id);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
-                .body(pdf);
+        try {
+            byte[] pdf = projetoService.gerarPdfProjeto(id);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(ContentDisposition.builder("attachment")
+                    .filename("encarte_" + id + ".pdf")
+                    .build());
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar PDF: " + e.getMessage()).getBytes());
+        }
     }
 }
