@@ -75,7 +75,8 @@ public class ProdutoService {
         return produtoRepository.findAll(pageable);
     }
 
+
     private String gerarCaminhoImagem(Long ean) {
-        return "/static/imagens/produtos/" + ean + ".png";
+        return ean + ".png";
     }
 }

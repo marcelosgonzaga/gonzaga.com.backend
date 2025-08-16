@@ -18,9 +18,8 @@ public class TemaService {
         return temaRepository.findAll().stream()
                 .map(tema -> {
                     if (tema.getCaminhoImagem() != null) {
-                        // Extrai apenas o nome do arquivo
+                        // Garante que só o nome do arquivo será usado
                         String nomeArquivo = tema.getCaminhoImagem();
-                        // Remove qualquer caminho completo ou parcial
                         nomeArquivo = nomeArquivo.substring(nomeArquivo.lastIndexOf("/") + 1);
                         tema.setCaminhoImagem(nomeArquivo);
                     }
@@ -29,18 +28,6 @@ public class TemaService {
                 .collect(Collectors.toList());
     }
 
-//    public List<Tema> listarTodos() {
-//        return temaRepository.findAll().stream()
-//                .map(tema -> {
-//                    if (tema.getCaminhoImagem() != null) {
-//                        // Extrai apenas o nome do arquivo
-//                        String nomeArquivo = tema.getCaminhoImagem().substring(tema.getCaminhoImagem().lastIndexOf("/") + 1);
-//                        tema.setCaminhoImagem("http://localhost:8080/api/temas/imagens/" + nomeArquivo);
-//                    }
-//                    return tema;
-//                })
-//                .collect(Collectors.toList());
-//    }
 
     public List<Tema> buscarTemasPorDescricao(String termoBusca) {
        return temaRepository.buscarPorDescricao(termoBusca);

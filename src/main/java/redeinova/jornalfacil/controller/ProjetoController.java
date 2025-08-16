@@ -1,5 +1,7 @@
 package redeinova.jornalfacil.controller;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
@@ -21,10 +23,18 @@ public class ProjetoController {
     private final ProjetoService projetoService;
 
     @GetMapping
-    public ResponseEntity<List<Projeto>> listarTodos() {
-        List<Projeto> projetos = projetoService.listarTodos();
+    public ResponseEntity<Page<Projeto>> listarTodos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Projeto> projetos = projetoService.listarTodos(pageable);
         return ResponseEntity.ok(projetos);
     }
+//    @GetMapping
+//    public ResponseEntity<List<Projeto>> listarTodos() {
+//        List<Projeto> projetos = projetoService.listarTodos();
+//        return ResponseEntity.ok(projetos);
+//    }
 
     @GetMapping("/buscar")
     public ResponseEntity<List<Projeto>> buscarPorPeriodo(
@@ -47,23 +57,62 @@ public class ProjetoController {
     }
 
     @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+    public ResponseEntity<byte[]> gerarPdf(@PathVariable Long id) {
         try {
             byte[] pdf = projetoService.gerarPdfProjeto(id);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder("attachment")
-                    .filename("encarte_" + id + ".pdf")
-                    .build());
-            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-
             return ResponseEntity.ok()
-                    .headers(headers)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .contentType(MediaType.APPLICATION_PDF)
                     .body(pdf);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(("Erro ao gerar PDF: " + e.getMessage()).getBytes());
         }
     }
+
+    @GetMapping("/{id}/jpg")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+    public ResponseEntity<byte[]> gerarJpg(@PathVariable Long id) {
+        try {
+            byte[] jpg = projetoService.gerarImagemProjeto(id);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.jpg")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(jpg);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar JPG: " + e.getMessage()).getBytes());
+        }
+    }
+
+    /*@GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> gerarPdf(@PathVariable Long id) {
+        try {
+            byte[] pdf = projetoService.gerarPdfProjeto(id);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar PDF: " + e.getMessage()).getBytes());
+        }
+    }
+
+    @GetMapping("/{id}/jpg")
+    public ResponseEntity<byte[]> gerarJpg(@PathVariable Long id) {
+        try {
+            byte[] jpg = projetoService.gerarImagemProjeto(id);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.jpg")
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(jpg);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar JPG: " + e.getMessage()).getBytes());
+        }
+    }*/
 }

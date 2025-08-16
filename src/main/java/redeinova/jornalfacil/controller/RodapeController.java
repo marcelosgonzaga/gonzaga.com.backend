@@ -25,7 +25,7 @@ public class RodapeController {
         this.rodapeService = rodapeService;
     }
 
-    @GetMapping("/imagens/{nome:.+}")
+    @GetMapping("/imagens/rodapes/{nome:.+}")
     public ResponseEntity<byte[]> getImagem(@PathVariable String nome) {
         try {
             Path imagePath = Paths.get(IMAGE_BASE_PATH + nome);

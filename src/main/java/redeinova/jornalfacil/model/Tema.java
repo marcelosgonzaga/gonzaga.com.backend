@@ -12,6 +12,9 @@ public class Tema {
 
     private String descricao;
 
+    private String nome;
+
+
     @Column(name = "caminho_imagem", nullable = false)
     private String caminhoImagem;
 }

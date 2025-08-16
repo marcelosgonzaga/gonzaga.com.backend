@@ -25,8 +25,9 @@ public class TemaController {
     private final TemaService temaService;
     private static final String IMAGE_BASE_PATH = "E:/itensEncarteFacil/imagens/temas/";
 
+
     // Endpoint principal para servir imagens
-    @GetMapping("/imagens/{nome:.+}")
+    @GetMapping("/imagens/temas/{nome:.+}")
     public ResponseEntity<byte[]> getImagem(@PathVariable String nome) {
         try {
             Path imagePath = Paths.get(IMAGE_BASE_PATH + nome);
@@ -40,6 +41,13 @@ public class TemaController {
 
             if (mimeType == null) {
                 mimeType = "application/octet-stream";
+            }
+            if (mimeType == null) {
+                if (nome.toLowerCase().endsWith(".webp")) {
+                    mimeType = "image/webp";
+                } else {
+                    mimeType = "application/octet-stream";
+                }
             }
 
             return ResponseEntity.ok()
