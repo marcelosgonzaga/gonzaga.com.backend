@@ -1,6 +1,7 @@
 -- Tabela Tema
 CREATE TABLE IF NOT EXISTS tema (
                                     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                    nome VARCHAR(255) NOT NULL,
                                     descricao VARCHAR(255),
                                     caminho_imagem VARCHAR(255) NOT NULL
 );
@@ -23,13 +24,13 @@ CREATE TABLE IF NOT EXISTS produto (
                                        caminho_imagem VARCHAR(255)
 );
 
--- Tab**ela Projeto
+-- Tabela Projeto (corrigida)
 CREATE TABLE IF NOT EXISTS projeto (
                                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                       data_inicio DATE,
-                                       data_fim DATE,
-                                       tema_id BIGINT,
-                                       rodape_id BIGINT,
+                                       data_inicio DATE NOT NULL,
+                                       data_fim DATE NOT NULL,
+                                       tema_id BIGINT NOT NULL,
+                                       rodape_id BIGINT NOT NULL,
                                        FOREIGN KEY (tema_id) REFERENCES tema(id),
                                        FOREIGN KEY (rodape_id) REFERENCES rodape(id)
 );

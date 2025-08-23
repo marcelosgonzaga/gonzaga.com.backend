@@ -9,17 +9,18 @@ import java.util.List;
 
 @Data
 @Entity
+@Table(name = "projeto")
 public class Projeto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "tema_id", nullable = false)
     private Tema tema;
 
     @ManyToOne(optional = false)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "rodape_id", nullable = false)
     private Rodape rodape;
 
     @Column(nullable = false)
@@ -34,3 +35,4 @@ public class Projeto {
             inverseJoinColumns = @JoinColumn(name = "produto_id"))
     private List<Produto> produtos = new ArrayList<>();
 }
+

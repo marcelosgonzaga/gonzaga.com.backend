@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import redeinova.jornalfacil.dto.AtualizarProjetoDTO;
 import redeinova.jornalfacil.dto.NovoProjetoDTO;
 import redeinova.jornalfacil.model.Projeto;
 import redeinova.jornalfacil.service.ProjetoService;
@@ -17,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/projetos")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class ProjetoController {
 
     private final ProjetoService projetoService;
@@ -30,11 +31,7 @@ public class ProjetoController {
         Page<Projeto> projetos = projetoService.listarTodos(pageable);
         return ResponseEntity.ok(projetos);
     }
-//    @GetMapping
-//    public ResponseEntity<List<Projeto>> listarTodos() {
-//        List<Projeto> projetos = projetoService.listarTodos();
-//        return ResponseEntity.ok(projetos);
-//    }
+
 
     @GetMapping("/buscar")
     public ResponseEntity<List<Projeto>> buscarPorPeriodo(
@@ -47,7 +44,9 @@ public class ProjetoController {
     @PostMapping
     public ResponseEntity<Projeto> criarProjeto(@RequestBody @Valid NovoProjetoDTO dto) {
         Projeto projeto = projetoService.criarProjeto(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(projeto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("Location", "/api/projetos/" + projeto.getId())
+                .body(projeto);
     }
 
     @GetMapping("/{id}")
@@ -63,7 +62,7 @@ public class ProjetoController {
             byte[] pdf = projetoService.gerarPdfProjeto(id);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
-                    .header("Access-Control-Allow-Origin", "*")
+                    //.header("Access-Control-Allow-Origin", "*")
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(pdf);
         } catch (Exception e) {
@@ -79,7 +78,6 @@ public class ProjetoController {
             byte[] jpg = projetoService.gerarImagemProjeto(id);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.jpg")
-                    .header("Access-Control-Allow-Origin", "*")
                     .contentType(MediaType.IMAGE_JPEG)
                     .body(jpg);
         } catch (Exception e) {
@@ -88,31 +86,12 @@ public class ProjetoController {
         }
     }
 
-    /*@GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> gerarPdf(@PathVariable Long id) {
-        try {
-            byte[] pdf = projetoService.gerarPdfProjeto(id);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(pdf);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Erro ao gerar PDF: " + e.getMessage()).getBytes());
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Projeto> atualizarProjeto(
+            @PathVariable Long id,
+            @RequestBody @Valid AtualizarProjetoDTO dto) {
+        Projeto projetoAtualizado = projetoService.atualizarProjeto(id, dto);
+        return ResponseEntity.ok(projetoAtualizado);
     }
 
-    @GetMapping("/{id}/jpg")
-    public ResponseEntity<byte[]> gerarJpg(@PathVariable Long id) {
-        try {
-            byte[] jpg = projetoService.gerarImagemProjeto(id);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.jpg")
-                    .contentType(MediaType.IMAGE_JPEG)
-                    .body(jpg);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("Erro ao gerar JPG: " + e.getMessage()).getBytes());
-        }
-    }*/
 }
