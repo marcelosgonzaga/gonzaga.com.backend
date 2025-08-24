@@ -1,20 +1,20 @@
 -- Inserir Temas
 INSERT INTO tema (nome, descricao, caminho_imagem) VALUES
-                                                       ('Jornal 01A', 'Tema 01 - Padrão', '/imagens/temas/JORNAL01A.webp'),
-                                                       ('Jornal 02A', 'Tema 02 - Esportivo', '/imagens/temas/JORNAL02A.webp'),
-                                                       ('Jornal 03A', 'Tema 03 - Elegante', '/imagens/temas/JORNAL03A.webp'),
-                                                       ('Jornal 04A', 'Tema 04 - Padrão', '/imagens/temas/JORNAL04A.webp'),
-                                                       ('Jornal 05A', 'Tema 05 - Esportivo', '/imagens/temas/JORNAL05A.webp'),
-                                                       ('Jornal 06A', 'Tema 06 - Elegante', '/imagens/temas/JORNAL06A.webp'),
-                                                       ('Jornal 07A', 'Tema 07 - Padrão', '/imagens/temas/JORNAL07A.webp'),
-                                                       ('Jornal 08A', 'Tema 08 - Esportivo', '/imagens/temas/JORNAL08A.webp'),
-                                                       ('Jornal 09A', 'Tema 09 - Elegante', '/imagens/temas/JORNAL09A.webp'),
-                                                       ('Jornal 10A', 'Tema 10 - Padrão', '/imagens/temas/JORNAL10A.webp'),
-                                                       ('Jornal 11A', 'Tema 11 - Esportivo', '/imagens/temas/JORNAL11A.webp'),
-                                                       ('Jornal 12A', 'Tema 12 - Elegante', '/imagens/temas/JORNAL12A.webp'),
-                                                       ('Jornal 13A', 'Tema 13 - Padrão', '/imagens/temas/JORNAL13A.webp'),
-                                                       ('Jornal 14A', 'Tema 14 - Esportivo', '/imagens/temas/JORNAL14A.webp'),
-                                                       ('Jornal 15A', 'Tema 15 - Festivo', '/imagens/temas/JORNAL15A.webp');
+                                                       ('Jornal 01A', 'Tema 01 - Padrão', '/imagens/temas/JORNAL01A.png'),
+                                                       ('Jornal 02A', 'Tema 02 - Esportivo', '/imagens/temas/JORNAL02A.png'),
+                                                       ('Jornal 03A', 'Tema 03 - Elegante', '/imagens/temas/JORNAL03A.png'),
+                                                       ('Jornal 04A', 'Tema 04 - Padrão', '/imagens/temas/JORNAL04A.png'),
+                                                       ('Jornal 05A', 'Tema 05 - Esportivo', '/imagens/temas/JORNAL05A.png'),
+                                                       ('Jornal 06A', 'Tema 06 - Elegante', '/imagens/temas/JORNAL06A.png'),
+                                                       ('Jornal 07A', 'Tema 07 - Padrão', '/imagens/temas/JORNAL07A.png'),
+                                                       ('Jornal 08A', 'Tema 08 - Esportivo', '/imagens/temas/JORNAL08A.png'),
+                                                       ('Jornal 09A', 'Tema 09 - Elegante', '/imagens/temas/JORNAL09A.png'),
+                                                       ('Jornal 10A', 'Tema 10 - Padrão', '/imagens/temas/JORNAL10A.png'),
+                                                       ('Jornal 11A', 'Tema 11 - Esportivo', '/imagens/temas/JORNAL11A.png'),
+                                                       ('Jornal 12A', 'Tema 12 - Elegante', '/imagens/temas/JORNAL12A.png'),
+                                                       ('Jornal 13A', 'Tema 13 - Padrão', '/imagens/temas/JORNAL13A.png'),
+                                                       ('Jornal 14A', 'Tema 14 - Esportivo', '/imagens/temas/JORNAL14A.png'),
+                                                       ('Jornal 15A', 'Tema 15 - Festivo', '/imagens/temas/JORNAL15A.png');
 -- Inserir Rodapés
 INSERT INTO rodape (codigo_loja, caminho_imagem) VALUES
                                                      (1, '/imagens/rodapes/1.png'),
