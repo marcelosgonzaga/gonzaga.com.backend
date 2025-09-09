@@ -8,7 +8,11 @@
         <version>3.3.10</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+<<<<<<< HEAD
     <groupId>gonzaga</groupId>
+=======
+    <groupId>redeinova</groupId>
+>>>>>>> a640173ca1a24239142ed52fe6a87eb0360c37f1
     <artifactId>jornal-facil</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>jornal-facil</name>
@@ -146,6 +150,7 @@
             <version>1.3.2</version>
         </dependency>
 
+<<<<<<< HEAD
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -164,6 +169,8 @@
             <version>8.0.2.Final</version>
         </dependency>
 
+=======
+>>>>>>> a640173ca1a24239142ed52fe6a87eb0360c37f1
 
 
 

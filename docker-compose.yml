@@ -1,6 +1,9 @@
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a640173ca1a24239142ed52fe6a87eb0360c37f1
 version: '3.8'
 
 services:
