@@ -8,7 +8,7 @@
         <version>3.3.10</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>redeinova</groupId>
+    <groupId>gonzaga</groupId>
     <artifactId>jornal-facil</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>jornal-facil</name>
@@ -149,13 +149,6 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.3.0</version>
             <scope>runtime</scope>
         </dependency>
 
