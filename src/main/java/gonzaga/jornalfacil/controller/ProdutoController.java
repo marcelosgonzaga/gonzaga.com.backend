@@ -1,5 +1,7 @@
 package gonzaga.jornalfacil.controller;
 
+import gonzaga.jornalfacil.exception.InvalidProductDataException;
+import gonzaga.jornalfacil.model.ClassificacaoProduto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,12 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @RestController
 @RequestMapping("/api/produtos")
 @RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class ProdutoController {
+    private static final Logger logger = LoggerFactory.getLogger(ProdutoController.class);
     private final ProdutoService produtoService;
 
     @GetMapping
@@ -83,24 +89,65 @@ public class ProdutoController {
         }
     }
 
-    // ProdutoController.java - Adicionar este método
     @PutMapping("/precos-em-lote")
     public ResponseEntity<List<ProdutoResponse>> atualizarPrecosEmLote(@RequestBody List<Map<String, Object>> produtosComPrecos) {
         try {
+            logger.info("Recebendo atualização em lote para {} produtos", produtosComPrecos.size());
+
             List<ProdutoResponse> produtosAtualizados = new ArrayList<>();
 
             for (Map<String, Object> produtoPreco : produtosComPrecos) {
                 Long id = Long.valueOf(produtoPreco.get("id").toString());
+                logger.info("Processando produto ID: {}, precoDe: {}, precoPor: {}, isento: {}",
+                        id, produtoPreco.get("precoDe"), produtoPreco.get("precoPor"), produtoPreco.get("isento"));
+
                 Produto produto = produtoService.buscarPorId(id);
 
+                // **VERIFICAR SE É MEDICAMENTO ISENTO**
+                Boolean isIsento = produtoPreco.containsKey("isento") ?
+                        Boolean.valueOf(produtoPreco.get("isento").toString()) : false;
+
+                // **CONVERTER VALORES RECEBIDOS DO FRONTEND (CENTAVOS)**
                 if (produtoPreco.containsKey("precoDe")) {
-                    BigDecimal precoDe = new BigDecimal(produtoPreco.get("precoDe").toString());
-                    produto.setPrecoDe(precoDe);
+                    Object precoDeObj = produtoPreco.get("precoDe");
+                    if (precoDeObj != null && !precoDeObj.toString().isEmpty()) {
+                        try {
+                            BigDecimal precoDe = new BigDecimal(precoDeObj.toString());
+                            // Se o valor for muito alto (> 100), assume que está em centavos
+                            if (precoDe.compareTo(new BigDecimal("100")) > 0) {
+                                precoDe = precoDe.divide(new BigDecimal("100"));
+                            }
+                            produto.setPrecoDe(precoDe);
+                        } catch (NumberFormatException e) {
+                            // Para medicamentos isentos, pode ser null
+                            if (!isIsento || produto.getClassificacao() != ClassificacaoProduto.MEDICAMENTO) {
+                                produto.setPrecoDe(null);
+                            }
+                        }
+                    } else {
+                        // Para medicamentos isentos, pode ser null
+                        if (!isIsento || produto.getClassificacao() != ClassificacaoProduto.MEDICAMENTO) {
+                            produto.setPrecoDe(null);
+                        }
+                    }
                 }
 
                 if (produtoPreco.containsKey("precoPor")) {
-                    BigDecimal precoPor = new BigDecimal(produtoPreco.get("precoPor").toString());
-                    produto.setPrecoPor(precoPor);
+                    Object precoPorObj = produtoPreco.get("precoPor");
+                    if (precoPorObj != null && !precoPorObj.toString().isEmpty()) {
+                        try {
+                            BigDecimal precoPor = new BigDecimal(precoPorObj.toString());
+                            // Converter centavos para reais
+                            if (precoPor.compareTo(new BigDecimal("100")) > 0) {
+                                precoPor = precoPor.divide(new BigDecimal("100"));
+                            }
+                            produto.setPrecoPor(precoPor);
+                        } catch (NumberFormatException e) {
+                            throw new InvalidProductDataException("Preço por inválido para o produto ID: " + id);
+                        }
+                    } else {
+                        throw new InvalidProductDataException("Preço por é obrigatório para o produto ID: " + id);
+                    }
                 }
 
                 Produto produtoAtualizado = produtoService.atualizarProduto(produto);
@@ -109,6 +156,7 @@ public class ProdutoController {
 
             return ResponseEntity.ok(produtosAtualizados);
         } catch (Exception e) {
+            logger.error("Erro ao atualizar preços em lote: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

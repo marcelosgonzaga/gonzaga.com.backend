@@ -307,12 +307,14 @@ public class ImageService {
                 return "0,00";
             }
 
-            // Formatar corretamente para o padrão brasileiro
+            // Converter para double e dividir por 100 (assume que o valor está em centavos)
+            double valorDouble = value.doubleValue() / 100.0;
+
             NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
             formatter.setMinimumFractionDigits(2);
             formatter.setMaximumFractionDigits(2);
 
-            return formatter.format(value);
+            return formatter.format(valorDouble);
         } catch (Exception e) {
             System.out.println("Erro ao formatar valor: " + value + " - " + e.getMessage());
             return "0,00";

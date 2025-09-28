@@ -20,14 +20,14 @@ public class NovoProdutoDTO {
     private Long ean;
 
     @NotNull
-    @Size(max = 255, message = "Descrição deve ter no maximo 255 caracteres")
+    @Size(max = 255, message = "Descrição deve ter no máximo 255 caracteres")
     private String descricao;
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Preço De: deve ser maior que zero")
+    // REMOVA @DecimalMin para precoDe (pode ser zero para medicamentos isentos)
     private BigDecimal precoDe;
 
-    @NotNull(message = "Preço Por: é obrigatório")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Preço Por: deve ser maior que zero")
+    @NotNull(message = "Preço Por é obrigatório")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Preço Por deve ser maior ou igual a zero") // Mude para inclusive=true
     private BigDecimal precoPor;
 
     @NotNull(message = "Classificação é obrigatória")
