@@ -98,27 +98,25 @@ public class ProdutoController {
 
             for (Map<String, Object> produtoPreco : produtosComPrecos) {
                 Long id = Long.valueOf(produtoPreco.get("id").toString());
-                logger.info("Processando produto ID: {}, precoDe: {}, precoPor: {}, isento: {}",
-                        id, produtoPreco.get("precoDe"), produtoPreco.get("precoPor"), produtoPreco.get("isento"));
-
-                Produto produto = produtoService.buscarPorId(id);
-
-                // **VERIFICAR SE É MEDICAMENTO ISENTO**
                 Boolean isIsento = produtoPreco.containsKey("isento") ?
                         Boolean.valueOf(produtoPreco.get("isento").toString()) : false;
 
-                // **CONVERTER VALORES RECEBIDOS DO FRONTEND (CENTAVOS)**
+                logger.info("Processando produto ID: {}, precoDe: {}, precoPor: {}, isento: {}",
+                        id, produtoPreco.get("precoDe"), produtoPreco.get("precoPor"), isIsento);
+
+                Produto produto = produtoService.buscarPorId(id);
+
+                // Processar precoDe
                 if (produtoPreco.containsKey("precoDe")) {
                     Object precoDeObj = produtoPreco.get("precoDe");
                     if (precoDeObj != null && !precoDeObj.toString().isEmpty()) {
                         try {
+                            // Converter para BigDecimal diretamente (já está em reais)
                             BigDecimal precoDe = new BigDecimal(precoDeObj.toString());
-                            // Se o valor for muito alto (> 100), assume que está em centavos
-                            if (precoDe.compareTo(new BigDecimal("100")) > 0) {
-                                precoDe = precoDe.divide(new BigDecimal("100"));
-                            }
                             produto.setPrecoDe(precoDe);
+                            logger.info("Produto {} - PrecoDe definido como: {}", id, precoDe);
                         } catch (NumberFormatException e) {
+                            logger.warn("Formato inválido para precoDe do produto {}: {}", id, precoDeObj);
                             // Para medicamentos isentos, pode ser null
                             if (!isIsento || produto.getClassificacao() != ClassificacaoProduto.MEDICAMENTO) {
                                 produto.setPrecoDe(null);
@@ -132,22 +130,26 @@ public class ProdutoController {
                     }
                 }
 
+                // Processar precoPor (OBRIGATÓRIO)
                 if (produtoPreco.containsKey("precoPor")) {
                     Object precoPorObj = produtoPreco.get("precoPor");
                     if (precoPorObj != null && !precoPorObj.toString().isEmpty()) {
                         try {
+                            // Converter para BigDecimal diretamente (já está em reais)
                             BigDecimal precoPor = new BigDecimal(precoPorObj.toString());
-                            // Converter centavos para reais
-                            if (precoPor.compareTo(new BigDecimal("100")) > 0) {
-                                precoPor = precoPor.divide(new BigDecimal("100"));
-                            }
                             produto.setPrecoPor(precoPor);
+                            logger.info("Produto {} - PrecoPor definido como: {}", id, precoPor);
                         } catch (NumberFormatException e) {
+                            logger.error("Preço por inválido para o produto ID: {} - valor: {}", id, precoPorObj);
                             throw new InvalidProductDataException("Preço por inválido para o produto ID: " + id);
                         }
                     } else {
+                        logger.error("Preço por é obrigatório para o produto ID: {}", id);
                         throw new InvalidProductDataException("Preço por é obrigatório para o produto ID: " + id);
                     }
+                } else {
+                    logger.error("Campo precoPor não encontrado para o produto ID: {}", id);
+                    throw new InvalidProductDataException("Campo precoPor é obrigatório para o produto ID: " + id);
                 }
 
                 Produto produtoAtualizado = produtoService.atualizarProduto(produto);

@@ -82,22 +82,14 @@ public class ProdutoService {
 
     @Transactional
     public Produto atualizarProduto(Produto produto) {
+        logger.info("Atualizando produto ID: {} - PrecoDe: {}, PrecoPor: {}, Classificacao: {}",
+                produto.getId(), produto.getPrecoDe(), produto.getPrecoPor(), produto.getClassificacao());
+
         if (!produtoRepository.existsById(produto.getId())) {
             throw new EntityNotFoundException("Produto não encontrado com ID: " + produto.getId());
         }
 
-        // **CONVERSÃO DE CENTAVOS PARA REAIS - CORREÇÃO PRINCIPAL**
-        if (produto.getPrecoPor() != null && produto.getPrecoPor().compareTo(new BigDecimal("100")) > 0) {
-            BigDecimal precoPorCorrigido = produto.getPrecoPor().divide(new BigDecimal("100"));
-            produto.setPrecoPor(precoPorCorrigido);
-        }
-
-        if (produto.getPrecoDe() != null && produto.getPrecoDe().compareTo(new BigDecimal("100")) > 0) {
-            BigDecimal precoDeCorrigido = produto.getPrecoDe().divide(new BigDecimal("100"));
-            produto.setPrecoDe(precoDeCorrigido);
-        }
-
-        // Validações após a conversão
+        // Validações diretas
         if (produto.getPrecoPor() == null) {
             throw new InvalidProductDataException("Preço por é obrigatório");
         }
@@ -106,95 +98,33 @@ public class ProdutoService {
             throw new InvalidProductDataException("Preço por não pode ser negativo");
         }
 
-        // **VALIDAÇÃO CORRIGIDA PARA MEDICAMENTOS - CONSIDERAR ISENTOS**
+        // Validação para medicamentos
         if (produto.getClassificacao() == ClassificacaoProduto.MEDICAMENTO) {
-            // Para medicamentos isentos, precoDe pode ser null ou 0
             boolean isIsento = produto.getPrecoDe() == null ||
                     produto.getPrecoDe().compareTo(BigDecimal.ZERO) == 0;
 
             if (!isIsento) {
-                // Apenas valida medicamentos NÃO isentos
                 if (produto.getPrecoDe().compareTo(BigDecimal.ZERO) < 0) {
                     throw new InvalidProductDataException("Preço de não pode ser negativo para medicamentos");
                 }
 
-                // **CORREÇÃO: Permitir pequenas diferenças e ajustar automaticamente**
-                BigDecimal diferenca = produto.getPrecoDe().subtract(produto.getPrecoPor());
-
-                // Se precoDe for menor que precoPor, ajusta automaticamente
-                if (diferenca.compareTo(BigDecimal.ZERO) < 0) {
+                // Ajustar automaticamente se precoDe < precoPor
+                if (produto.getPrecoDe().compareTo(produto.getPrecoPor()) < 0) {
                     logger.info("Ajustando automaticamente precoDe para produto ID {}: {} -> {}",
                             produto.getId(), produto.getPrecoDe(), produto.getPrecoPor());
-
-                    // Define precoDe igual a precoPor
                     produto.setPrecoDe(produto.getPrecoPor());
                 }
             }
-            // Medicamentos isentos não precisam de validação adicional
         }
 
-        return produtoRepository.save(produto);
+        Produto produtoSalvo = produtoRepository.save(produto);
+        logger.info("Produto salvo - ID: {} - PrecoDe: {}, PrecoPor: {}",
+                produtoSalvo.getId(), produtoSalvo.getPrecoDe(), produtoSalvo.getPrecoPor());
+
+        return produtoSalvo;
     }
 
-    @Transactional
-    public List<Produto> atualizarProdutosEmLote(List<Produto> produtos) {
-        List<Produto> produtosAtualizados = new ArrayList<>();
 
-        for (Produto produto : produtos) {
-            if (!produtoRepository.existsById(produto.getId())) {
-                throw new EntityNotFoundException("Produto não encontrado com ID: " + produto.getId());
-            }
-
-            // **APLICAR MESMA CONVERSÃO DO MÉTODO INDIVIDUAL**
-            if (produto.getPrecoPor() != null && produto.getPrecoPor().compareTo(new BigDecimal("100")) > 0) {
-                BigDecimal precoPorCorrigido = produto.getPrecoPor().divide(new BigDecimal("100"));
-                produto.setPrecoPor(precoPorCorrigido);
-            }
-
-            if (produto.getPrecoDe() != null && produto.getPrecoDe().compareTo(new BigDecimal("100")) > 0) {
-                BigDecimal precoDeCorrigido = produto.getPrecoDe().divide(new BigDecimal("100"));
-                produto.setPrecoDe(precoDeCorrigido);
-            }
-
-            // Validações após conversão
-            if (produto.getPrecoPor() == null) {
-                throw new InvalidProductDataException("Preço por é obrigatório para o produto ID: " + produto.getId());
-            }
-
-            if (produto.getPrecoPor().compareTo(BigDecimal.ZERO) < 0) {
-                throw new InvalidProductDataException("Preço por não pode ser negativo para o produto ID: " + produto.getId());
-            }
-
-            // **VALIDAÇÃO CORRIGIDA PARA LOTE - MESMA LÓGICA DO MÉTODO INDIVIDUAL**
-            if (produto.getClassificacao() == ClassificacaoProduto.MEDICAMENTO) {
-                if (produto.getPrecoDe() == null) {
-                    throw new InvalidProductDataException("Preço de é obrigatório para medicamento ID: " + produto.getId());
-                }
-
-                if (produto.getPrecoDe().compareTo(BigDecimal.ZERO) < 0) {
-                    throw new InvalidProductDataException("Preço de não pode ser negativo para medicamento ID: " + produto.getId());
-                }
-
-                // **APENAS VALIDAR SE precoDe > 0**
-                if (produto.getPrecoDe().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal diferenca = produto.getPrecoDe().subtract(produto.getPrecoPor());
-
-                    // Se precoDe for menor que precoPor, ajusta automaticamente
-                    if (diferenca.compareTo(BigDecimal.ZERO) < 0) {
-                        logger.info("Ajustando automaticamente precoDe para produto ID {} em lote: {} -> {}",
-                                produto.getId(), produto.getPrecoDe(), produto.getPrecoPor());
-
-                        // Define precoDe igual a precoPor
-                        produto.setPrecoDe(produto.getPrecoPor());
-                    }
-                }
-            }
-
-            produtosAtualizados.add(produtoRepository.save(produto));
-        }
-
-        return produtosAtualizados;
-    }
 
     private String gerarCaminhoImagem(Long ean) {
         return ean + ".png";
