@@ -145,7 +145,7 @@ public class ImageService {
                     int originalHeight = originalImage.getHeight();
 
                     // Definir tamanho máximo desejado mantendo proporção
-                    int maxSize = 400;
+                    int maxSize = 415;
                     int newWidth, newHeight;
 
                     if (originalWidth > originalHeight) {
@@ -222,30 +222,92 @@ public class ImageService {
 
         // Borda interna branca sutil
         g2d.setColor(new Color(255, 255, 255, 50));
-        g2d.setStroke(new BasicStroke(2f)); // Borda mais espessa
-        g2d.drawRoundRect(boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 12, 12);
+        g2d.setStroke(new BasicStroke(4f)); // Borda mais espessa
+        g2d.drawRoundRect(boxX + 4, boxY + 4, boxWidth - 8, boxHeight - 8, 18, 18);
 
         // Textos dos preços
         g2d.setColor(Color.WHITE);
 
+        // VERIFICAR SE A FONTE ROBOTO CONDENSED ESTÁ DISPONÍVEL
+        String[] fontesPreferidas = {"Impact", "Arial Black", "Segoe UI Black", "SansSerif"};
+        Font fonteFallback = new Font("Segoe UI Black", Font.BOLD, 20);
+
         // Preço De (se existir)
         if (produto.getPrecoDe() != null && produto.getPrecoDe().compareTo(BigDecimal.ZERO) > 0) {
-            g2d.setFont(new Font("Arial", Font.BOLD, 16));
-            String precoDeText = "De: " + formatCurrency(produto.getPrecoDe());
+            Font fontePrecoDe = encontrarFonteDisponivel(g2d, new String[]{"Trebuchet MS", "Arial", "SansSerif"}, Font.BOLD, 15);
+            //Font fontePrecoDe = encontrarFonteDisponivel(g2d, fontesPreferidas, Font.BOLD, 13);
+            g2d.setFont(fontePrecoDe);
+            String precoDeText = "De R$ " + formatCurrency(produto.getPrecoDe()) + " por apenas: ";
             g2d.drawString(precoDeText, boxX + 10, boxY + 20);
         }
 
         // Preço Por (valor principal)
-        g2d.setFont(new Font("Arial Rounded MT Bold", Font.BOLD, 32));
-        String precoPorText = "R$ " + formatCurrencySimple(produto.getPrecoPor());
-        FontMetrics fm = g2d.getFontMetrics();
-        int textWidth = fm.stringWidth(precoPorText);
-        g2d.drawString(precoPorText, boxX + (boxWidth - textWidth) / 2, boxY + 55);
+        String precoPorText = formatCurrency(produto.getPrecoPor());
+        String valorFormatado = precoPorText.replace("R$", "").trim();
+        String[] partes = valorFormatado.split(",");
+        String parteInteira = partes[0];
+        String parteDecimal = partes.length > 1 ? "," + partes[1] : ",00";
+
+        // CONFIGURAÇÕES DE FONTE COM FALLBACK
+        Font fonteR$ = encontrarFonteDisponivel(g2d, fontesPreferidas, Font.BOLD, 36);
+        Font fontePrincipal = encontrarFonteDisponivel(g2d, fontesPreferidas, Font.BOLD, 72);
+        Font fonteCentavos = encontrarFonteDisponivel(g2d, fontesPreferidas, Font.BOLD, 36);
+
+        // CALCULAR LARGURAS TOTAIS PARA CENTRALIZAÇÃO
+        FontMetrics fmR$ = g2d.getFontMetrics(fonteR$);
+        FontMetrics fmPrincipal = g2d.getFontMetrics(fontePrincipal);
+        FontMetrics fmCentavos = g2d.getFontMetrics(fonteCentavos);
+
+        int larguraR$ = fmR$.stringWidth("R$");
+        int larguraPrincipal = fmPrincipal.stringWidth(parteInteira);
+        int larguraCentavos = fmCentavos.stringWidth(parteDecimal);
+        int espacamento = 5;
+
+        int larguraTotal = larguraR$ + espacamento + larguraPrincipal + espacamento + larguraCentavos;
+
+        // CALCULAR POSIÇÃO X INICIAL PARA CENTRALIZAR TODO O PREÇO
+        int startX = boxX + (boxWidth - larguraTotal) / 2;
+        int baseY = boxY + 90;
+
+        // DESENHAR R$
+        g2d.setFont(fonteR$);
+        int r$Y = baseY - (fontePrincipal.getSize() - fonteR$.getSize()) / 3;
+        g2d.drawString("R$", startX, r$Y);
+
+        // DESENHAR VALOR PRINCIPAL
+        g2d.setFont(fontePrincipal);
+        int principalX = startX + larguraR$ + espacamento;
+        g2d.drawString(parteInteira, principalX, baseY);
+
+        // DESENHAR CENTAVOS
+        g2d.setFont(fonteCentavos);
+        int centavosX = principalX + larguraPrincipal + espacamento;
+        int centavosY = baseY - (fontePrincipal.getSize() - fonteCentavos.getSize()) / 2;
+        g2d.drawString(parteDecimal, centavosX, centavosY);
 
         // Texto "a unid."
-        g2d.setFont(new Font("Trebuchet MS", Font.PLAIN, 14));
-        g2d.drawString("a unid.", boxX + boxWidth - 45, boxY + boxHeight - 10);
+        Font fonteUnid = encontrarFonteDisponivel(g2d, new String[]{"Trebuchet MS", "Arial", "SansSerif"}, Font.PLAIN, 18);
+        g2d.setFont(fonteUnid);
+        String unidText = "a unid.";
+        FontMetrics fmUnid = g2d.getFontMetrics();
+        int larguraUnid = fmUnid.stringWidth(unidText);
+        int unidX = boxX + 220;
+        int unidY = boxY + boxHeight - 10;
+        g2d.drawString(unidText, unidX, unidY);
     }
+
+    // MÉTODO AUXILIAR PARA ENCONTRAR FONTE DISPONÍVEL
+    private Font encontrarFonteDisponivel(Graphics2D g2d, String[] fontes, int estilo, int tamanho) {
+        for (String nomeFonte : fontes) {
+            Font fonte = new Font(nomeFonte, estilo, tamanho);
+            if (fonte.getFamily().equalsIgnoreCase(nomeFonte)) {
+                return fonte;
+            }
+        }
+        // Fallback para fonte padrão do sistema
+        return new Font("Arial", estilo, tamanho);
+    }
+
 
     private void desenharDatasValidade(Graphics2D g2d, BufferedImage bufferedImage, Projeto projeto) {
         if (projeto.getDataInicio() != null && projeto.getDataFim() != null) {

@@ -66,7 +66,14 @@ public class FileStorageService {
             Files.createDirectories(uploadPath);
 
             // Gera um nome de arquivo único
-            String fileName = prefix + "_" + System.currentTimeMillis() + fileExtension;
+            String fileName;
+            if ("tema".equals(prefix)) {
+                // Para temas, use um nome mais descritivo
+                String nomeBase = originalFileName.substring(0, originalFileName.lastIndexOf("."));
+                fileName = nomeBase + fileExtension;
+            } else {
+                fileName = prefix + "_" + System.currentTimeMillis() + fileExtension;
+            }
 
             // Verifica se o nome do arquivo contém caracteres inválidos
             Path targetLocation = uploadPath.resolve(fileName).normalize();

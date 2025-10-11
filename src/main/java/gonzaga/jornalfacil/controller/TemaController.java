@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import gonzaga.jornalfacil.model.Tema;
 import gonzaga.jornalfacil.service.TemaService;
 
@@ -27,6 +28,46 @@ public class TemaController {
 
     @Value("${file.temas-dir}")
     private String temasDir;
+
+    // NOVO: Endpoint para criar tema
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Tema> criarTema(
+            @RequestParam("nome") String nome,
+            @RequestParam("descricao") String descricao,
+            @RequestParam("imagem") MultipartFile imagem) {
+        try {
+            Tema novoTema = temaService.criarTema(nome, descricao, imagem);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoTema);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // NOVO: Endpoint para atualizar tema
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Tema> atualizarTema(
+            @PathVariable Long id,
+            @RequestParam("nome") String nome,
+            @RequestParam("descricao") String descricao,
+            @RequestParam(value = "imagem", required = false) MultipartFile imagem) {
+        try {
+            Tema temaAtualizado = temaService.atualizarTema(id, nome, descricao, imagem);
+            return ResponseEntity.ok(temaAtualizado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // NOVO: Endpoint para deletar tema
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarTema(@PathVariable Long id) {
+        try {
+            temaService.deletarTema(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     // Endpoint principal para servir imagens - CORRIGIDO
     @GetMapping("/imagens/temas/{nome:.+}")
@@ -177,4 +218,3 @@ public class TemaController {
         }
     }
 }
-

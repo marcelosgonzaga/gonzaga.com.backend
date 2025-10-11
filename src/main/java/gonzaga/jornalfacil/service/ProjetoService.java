@@ -506,8 +506,25 @@ public class ProjetoService {
     public Projeto atualizarProjeto(Long id, AtualizarProjetoDTO dto) {
         Projeto projeto = buscarPorId(id);
 
-        projeto.setDataInicio(dto.getDataInicio());
-        projeto.setDataFim(dto.getDataFim());
+        // Atualizar apenas se fornecido no DTO
+        if (dto.getDataInicio() != null) {
+            projeto.setDataInicio(dto.getDataInicio());
+        }
+
+        if (dto.getDataFim() != null) {
+            projeto.setDataFim(dto.getDataFim());
+        }
+
+        // Validar datas apenas se ambas foram fornecidas
+        if (dto.getDataInicio() != null && dto.getDataFim() != null) {
+            validarDatas(dto.getDataInicio(), dto.getDataFim());
+        } else if (dto.getDataInicio() != null && projeto.getDataFim() != null) {
+            // Validar data início com data fim existente
+            validarDatas(dto.getDataInicio(), projeto.getDataFim());
+        } else if (dto.getDataFim() != null && projeto.getDataInicio() != null) {
+            // Validar data fim com data início existente
+            validarDatas(projeto.getDataInicio(), dto.getDataFim());
+        }
 
         if (dto.getRodapeId() != null) {
             Rodape rodape = rodapeRepository.findById(dto.getRodapeId())
