@@ -32,7 +32,6 @@ public class ProjetoController {
         return ResponseEntity.ok(projetos);
     }
 
-
     @GetMapping("/buscar")
     public ResponseEntity<List<Projeto>> buscarPorPeriodo(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
@@ -58,12 +57,13 @@ public class ProjetoController {
 
     @GetMapping("/{id}/pdf")
     @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
-    public ResponseEntity<byte[]> gerarPdf(@PathVariable Long id) {
+    public ResponseEntity<byte[]> gerarPdf(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "SISTEMA") String codigoCliente) { // ✅ ADICIONADO parâmetro codigoCliente
         try {
-            byte[] pdf = projetoService.gerarPdfProjeto(id);
+            byte[] pdf = projetoService.gerarPdfProjeto(id, codigoCliente); // ✅ AGORA COM 2 PARÂMETROS
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte.pdf")
-                    //.header("Access-Control-Allow-Origin", "*")
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(pdf);
         } catch (Exception e) {
@@ -87,6 +87,42 @@ public class ProjetoController {
         }
     }
 
+    // ✅ NOVO ENDPOINT: Gerar PDF via SSR
+    @GetMapping("/{id}/pdf-ssr")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+    public ResponseEntity<byte[]> gerarPdfSSR(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "SISTEMA") String codigoCliente) {
+        try {
+            byte[] pdf = projetoService.gerarPdfProjetoSSR(id, codigoCliente);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte_ssr.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar PDF via SSR: " + e.getMessage()).getBytes());
+        }
+    }
+
+    // ✅ NOVO ENDPOINT: Gerar JPG via SSR
+    @GetMapping("/{id}/jpg-ssr")
+    @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+    public ResponseEntity<byte[]> gerarJpgSSR(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "SISTEMA") String codigoCliente) {
+        try {
+            byte[] jpg = projetoService.gerarJpgProjetoSSR(id, codigoCliente);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=encarte_ssr.jpg")
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(jpg);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Erro ao gerar JPG via SSR: " + e.getMessage()).getBytes());
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Projeto> atualizarProjeto(
             @PathVariable Long id,
@@ -94,5 +130,4 @@ public class ProjetoController {
         Projeto projetoAtualizado = projetoService.atualizarProjeto(id, dto);
         return ResponseEntity.ok(projetoAtualizado);
     }
-
 }

@@ -32,4 +32,16 @@ public class Produto {
     private ClassificacaoProduto classificacao;
 
     private String caminhoImagem;
+
+    @Column(name = "isento", nullable = false)
+    private boolean isento = false;
+
+    //  Informações Obrigatórias (Princípio Ativo, Registro MS, Fabricante)
+    @Column(name = "informacoes_obrigatorias", length = 500)
+    private String informacoesObrigatorias;
+
+    //  Texto Legal
+    @Column(name = "texto_legal", length = 500)
+    private String textoLegal;
+
 }

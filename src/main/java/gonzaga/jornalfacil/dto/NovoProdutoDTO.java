@@ -32,4 +32,12 @@ public class NovoProdutoDTO {
 
     @NotNull(message = "Classificação é obrigatória")
     private ClassificacaoProduto classificacao;
+
+    // Informações Obrigatórias
+    @Size(max = 500, message = "Informações obrigatórias deve ter no máximo 500 caracteres")
+    private String informacoesObrigatorias;
+
+    //  Texto Legal
+    @Size(max = 500, message = "Texto legal deve ter no máximo 500 caracteres")
+    private String textoLegal;
 }

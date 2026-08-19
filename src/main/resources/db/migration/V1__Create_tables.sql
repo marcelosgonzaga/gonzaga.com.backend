@@ -18,11 +18,12 @@ CREATE TABLE IF NOT EXISTS produto (
                                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                        ean BIGINT NOT NULL UNIQUE,
                                        descricao VARCHAR(255) NOT NULL,
-                                       preco_de DECIMAL(10,2),
-                                       preco_por DECIMAL(10,2) NOT NULL,
-                                       classificacao ENUM('MEDICAMENTO','PERFUMARIA'),
-                                       caminho_imagem VARCHAR(255)
-);
+                                        preco_de DECIMAL(10,2),
+                                        preco_por DECIMAL(10,2) NOT NULL,
+                                        classificacao ENUM('MEDICAMENTO','PERFUMARIA'),
+                                        caminho_imagem VARCHAR(255),
+                                        isento BOOLEAN DEFAULT FALSE NOT NULL
+ );
 
 -- Tabela Projeto (corrigida)
 CREATE TABLE IF NOT EXISTS projeto (

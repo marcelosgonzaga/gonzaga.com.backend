@@ -48,6 +48,8 @@ public class ProjetoService {
     private final ProdutoRepository produtoRepository;
     private final TemaRepository temaRepository;
     private final RodapeRepository rodapeRepository;
+    private final RelatorioService relatorioService;
+    private final SSRService ssrService;
 
     // Caminhos configuráveis
     @Value("${file.temas-dir}")
@@ -164,8 +166,9 @@ public class ProjetoService {
         }
     }
 
+    // ✅ MÉTODO ÚNICO - REMOVIDA A DUPLICAÇÃO
     @Transactional(readOnly = true)
-    public byte[] gerarPdfProjeto(Long projetoId) {
+    public byte[] gerarPdfProjeto(Long projetoId, String codigoCliente) {
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
 
@@ -206,6 +209,10 @@ public class ProjetoService {
 
             byte[] pdf = pdfService.gerarEncarte(projeto);
             logger.info("PDF gerado com sucesso para projeto {}", projeto.getId());
+
+            // ✅ REGISTRAR USO PARA RELATÓRIO
+            relatorioService.registrarUso(projeto, "PDF", codigoCliente);
+
             return pdf;
 
         } catch (EntityNotFoundException e) {
@@ -231,12 +238,6 @@ public class ProjetoService {
             logger.info("Iniciando geração de imagem JPG para projeto ID: {}", projetoId);
             Projeto projeto = buscarPorId(projetoId);
 
-            // Log detalhado dos dados do projeto
-            logger.debug("Projeto encontrado - ID: {}, Tema: {}, Produtos: {}",
-                    projeto.getId(),
-                    projeto.getTema() != null ? projeto.getTema().getId() : "null",
-                    projeto.getProdutos() != null ? projeto.getProdutos().size() : 0);
-
             // Validação básica antes de tentar gerar
             if (projeto == null) {
                 throw new EntityNotFoundException("Projeto não encontrado");
@@ -255,6 +256,10 @@ public class ProjetoService {
 
             byte[] jpg = imageService.gerarEncarteImagem(projeto);
             logger.info("Imagem JPG gerada com sucesso para projeto {}", projeto.getId());
+
+            // ✅ REGISTRAR USO PARA RELATÓRIO
+            relatorioService.registrarUso(projeto, "JPG", "SISTEMA");
+
             return jpg;
 
         } catch (EntityNotFoundException e) {
@@ -271,7 +276,82 @@ public class ProjetoService {
         }
     }
 
-    // Métodos auxiliares privados
+    // ✅ NOVO MÉTODO: Gerar PDF via SSR
+    @Transactional(readOnly = true)
+    public byte[] gerarPdfProjetoSSR(Long projetoId, String codigoCliente) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            logger.info("Iniciando geração de PDF via SSR para projeto ID: {}", projetoId);
+            Projeto projeto = buscarPorId(projetoId);
+
+            // Validações
+            if (projeto == null) {
+                throw new EntityNotFoundException("Projeto não encontrado");
+            }
+
+            logger.debug("Gerando PDF via SSR para projeto {} com {} produtos",
+                    projeto.getId(), projeto.getProdutos().size());
+
+            byte[] pdf = ssrService.gerarPdfProjeto(projeto);
+            logger.info("PDF via SSR gerado com sucesso para projeto {}", projeto.getId());
+
+            // ✅ REGISTRAR USO PARA RELATÓRIO
+            relatorioService.registrarUso(projeto, "PDF_SSR", codigoCliente);
+
+            return pdf;
+
+        } catch (EntityNotFoundException e) {
+            logger.error("Projeto não encontrado para SSR: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Erro inesperado ao gerar PDF via SSR: {}", e.getMessage(), e);
+            throw new PdfGenerationException("Erro ao gerar PDF via SSR: " + e.getMessage(), e);
+        } finally {
+            MDC.remove("requestId");
+        }
+    }
+
+    // ✅ NOVO MÉTODO: Gerar JPG via SSR
+    @Transactional(readOnly = true)
+    public byte[] gerarJpgProjetoSSR(Long projetoId, String codigoCliente) {
+        String requestId = UUID.randomUUID().toString();
+        MDC.put("requestId", requestId);
+
+        try {
+            logger.info("Iniciando geração de JPG via SSR para projeto ID: {}", projetoId);
+            Projeto projeto = buscarPorId(projetoId);
+
+            // Validações
+            if (projeto == null) {
+                throw new EntityNotFoundException("Projeto não encontrado");
+            }
+
+            logger.debug("Gerando JPG via SSR para projeto {} com {} produtos",
+                    projeto.getId(), projeto.getProdutos().size());
+
+            byte[] jpg = ssrService.gerarJpgProjeto(projeto);
+            logger.info("JPG via SSR gerado com sucesso para projeto {}", projeto.getId());
+
+            // ✅ REGISTRAR USO PARA RELATÓRIO
+            relatorioService.registrarUso(projeto, "JPG_SSR", codigoCliente);
+
+            return jpg;
+
+        } catch (EntityNotFoundException e) {
+            logger.error("Projeto não encontrado para SSR: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Erro inesperado ao gerar JPG via SSR: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao gerar JPG via SSR: " + e.getMessage(), e);
+        } finally {
+            MDC.remove("requestId");
+        }
+    }
+
+    // ... (RESTANTE DOS MÉTODOS AUXILIARES PERMANECEM IGUAIS) ...
+
     private Tema obterTemaValidado(Long temaId) {
         try {
             Tema tema = temaRepository.findById(temaId)
@@ -547,4 +627,3 @@ public class ProjetoService {
         return filePath;
     }
 }
-
