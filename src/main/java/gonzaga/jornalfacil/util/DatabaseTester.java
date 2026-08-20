@@ -23,10 +23,10 @@ public class DatabaseTester implements CommandLineRunner {
     public void run(String... args) throws Exception {
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            System.out.println("✅ Conexão com MySQL bem-sucedida!");
+            System.out.println("✅ Conexão com o banco bem-sucedida!");
             conn.close();
         } catch (Exception e) {
-            System.out.println("❌ Falha na conexão com MySQL: " + e.getMessage());
+            System.out.println("❌ Falha na conexão com o banco: " + e.getMessage());
         }
     }
 }

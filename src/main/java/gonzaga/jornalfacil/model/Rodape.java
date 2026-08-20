@@ -11,9 +11,9 @@ public class Rodape {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigoLoja", nullable = false, unique = true, length = 4)
+    @Column(name = "codigo_loja", nullable = false, unique = true, length = 4)
     private Long codigoLoja;
 
-    @Column(name = "caminhoImagem", nullable = false)
+    @Column(name = "caminho_imagem", nullable = false)
     private String caminhoImagem;
 }
